@@ -17,8 +17,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _telephoneController = TextEditingController();
+  final _dateNaissanceController = TextEditingController();
+  DateTime? _dateNaissance;
   bool _loading = false;
   String? _erreur;
+
+  /// Date au format attendu par l'API (AAAA-MM-JJ).
+  String _iso(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _choisirDateNaissance() async {
+    final maintenant = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _dateNaissance ?? DateTime(maintenant.year - 18),
+      firstDate: DateTime(1940),
+      lastDate: maintenant,
+      helpText: 'Date de naissance',
+    );
+    if (date == null) return;
+    setState(() {
+      _dateNaissance = date;
+      _dateNaissanceController.text =
+          '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    });
+  }
 
   Future<void> _inscrire() async {
     if (!_formKey.currentState!.validate()) return;
@@ -33,6 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             name: _nameController.text.trim(),
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            dateNaissance: _iso(_dateNaissance!),
             telephone: _telephoneController.text.trim().isEmpty ? null : _telephoneController.text.trim(),
           );
     } on ApiException catch (e) {
@@ -65,6 +89,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (v) => (v == null || v.isEmpty) ? 'Champ requis' : null,
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _dateNaissanceController,
+                  readOnly: true,
+                  onTap: _choisirDateNaissance,
+                  decoration: const InputDecoration(
+                    labelText: 'Date de naissance',
+                    suffixIcon: Icon(Icons.calendar_today_outlined),
+                  ),
+                  validator: (_) => _dateNaissance == null ? 'Champ requis' : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(

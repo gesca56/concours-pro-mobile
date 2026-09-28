@@ -67,6 +67,7 @@ class ApiService {
     required String name,
     required String email,
     required String password,
+    required String dateNaissance,
     String? telephone,
   }) async {
     final response = await http.post(
@@ -76,6 +77,7 @@ class ApiService {
         'name': name,
         'email': email,
         'password': password,
+        'date_naissance': dateNaissance,
         if (telephone != null) 'telephone': telephone,
       }),
     );
